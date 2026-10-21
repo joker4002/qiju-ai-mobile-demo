@@ -80,18 +80,37 @@ function plan(){let room=$('#planRoom').value,budget=Number($('#planBudget').val
 function score(p,q,budget=Infinity){let s=0;if(p.price<=budget)s+=5;else s-=8;for(const w of [p.category,p.room,p.name,p.tag,...p.features])if(q.includes(w))s+=w.length>2?4:2;if(/猫|狗|宠物/.test(q)&&p.features.includes('宠物友好'))s+=11;if(/小户型|小客厅|紧凑/.test(q)&&(/小户型|省空间/.test(p.tag+p.features.join(''))||p.price<3500))s+=5;if(/阅读|看书/.test(q)&&p.features.some(x=>x.includes('阅读')))s+=8;if(/收纳/.test(q)&&p.features.some(x=>x.includes('收纳')))s+=7;if(/原木|自然/.test(q)&&/橡木|白蜡木|实木|藤编/.test(p.material))s+=5;if(/奶油|白色/.test(q)&&/奶|米白|燕麦/.test(p.colors))s+=4;return s-p.price/3000;}
 function comparePlan(){let ps=(state.planner||[]).map(byId);if(!ps.length)return;showSheet('搭配方案对比','<div class="sheet-body"><p class="checkout-note">这份对比基于当前演示商品参数。</p><table class="compare-table"><thead><tr><th>商品</th><th>价格</th><th>尺寸</th><th>材质</th></tr></thead><tbody>'+ps.map(p=>'<tr><td>'+esc(p.name)+'</td><td>'+money(p.price)+'</td><td>'+esc(p.size)+'</td><td>'+esc(p.material)+'</td></tr>').join('')+'</tbody></table><div class="sheet-action-bar"><button class="primary-action" data-action="add-plan">整套加入购物袋</button></div></div>');}
 function faq(){const qs=[['配送需要多久？','当前为体验站，未连接真实仓储物流。正式接入后可按订单与收货城市展示实际预计送达时间。'],['大件家具可以安装吗？','演示流程支持在售后中心发起安装咨询。真实安装服务范围、费用和时段需要接入店铺履约系统。'],['商品可以退换吗？','演示站可以模拟提交退换申请。真实退换条件以实际商品页面和平台规则为准。'],['AI 推荐依据是什么？','体验版会读取演示商品的空间、尺寸、材质、价格和标签，按你的描述进行匹配排序。'],['这里能直接付款吗？','当前只创建体验订单，不发起真实支付。正式上线时可与店铺下单链路对接。']];$('#faqList').innerHTML=qs.map(([q,a])=>'<details class="faq-item"><summary>'+q+'</summary><p>'+a+'</p></details>').join('');}
-function addBubble(who,html,actions=[]){let el=document.createElement('div');el.className='bubble '+(who==='user'?'user':'assistant');el.innerHTML=(who==='assistant'?'<span class="bubble-avatar">栖</span>':'')+'<div class="bubble-body">'+html+(actions.length?'<div class="bubble-actions">'+actions.map(a=>'<button data-chat-action="'+a[0]+'"'+(a[2]?' data-id="'+esc(a[2])+'"':'')+'>'+esc(a[1])+'</button>').join('')+'</div>':'')+'</div>';$('#chatLog').append(el);el.scrollIntoView({block:'nearest',behavior:'smooth'});}
+function addBubble(who,html,actions=[]){let el=document.createElement('div');el.className='bubble '+(who==='user'?'user':'assistant');el.innerHTML=(who==='assistant'?'<span class="bubble-avatar">栖</span>':'')+'<div class="bubble-body">'+html+(actions.length?'<div class="bubble-actions">'+actions.map(a=>'<button data-chat-action="'+a[0]+'"'+(a[2]?' data-id="'+esc(a[2])+'"':'')+'>'+esc(a[1])+'</button>').join('')+'</div>':'')+'</div>';$('#chatLog').append(el);el.scrollIntoView({block:'nearest',behavior:'smooth'});return el;}
 function promptBar(){const prompts=['25㎡客厅，有猫，预算6000','帮我搭配一整个卧室','帮我下单','我的物流到哪了','我想申请售后'];$('#promptStrip').innerHTML=prompts.map(p=>'<button data-prompt="'+esc(p)+'">'+esc(p)+'</button>').join('');}
-function chat(text){let q=String(text||'').trim();if(!q)return;go('ai');addBubble('user',esc(q));let reply,actions=[];let budgetMatch=q.match(/(?:预算|不超过|以内|低于)?\s*(\d{3,5})\s*(?:元|块)?/);let budget=budgetMatch?Number(budgetMatch[1]):Infinity;
- if(/物流|快递|配送进度|发到哪|到哪了|运单/.test(q)){let o=state.orders[0];reply=o?'查到了你的体验订单 <strong>'+esc(o.id)+'</strong>，当前状态是 <strong>'+esc(o.status)+'</strong>。点击下方查看完整配送节点。':'当前还没有体验订单。先选商品模拟下单，就能看到物流旅程。';if(o)actions=[['track','查看物流详情',o.id],['after','需要售后帮助',o.id]];}
- else if(/客服|配送多久|发货多久|运费|保修|质保|发票|支付方式/.test(q)){reply=/发票/.test(q)?'当前为顾客端测试站，体验订单不会开具真实发票。正式接入店铺后，可在订单页展示可申请的发票类型与开票进度。':/配送|发货|运费/.test(q)?'当前商品与仓配信息均为演示数据，因此这里不展示真实运费和送达承诺。正式接入后会按商品、地址与仓库库存计算。':'我能回答配送、安装、发票、保修、材质与下单问题。演示站的具体政策为示意内容，真实服务条款需要接入店铺配置。';actions=[['faq','查看常见问题'],['shipping','查询体验订单']];}
- else if(/售后|退货|换货|安装|维修|破损|保养/.test(q)){let o=state.orders[0];reply='我可以帮你处理安装咨询、退换申请、破损反馈，也能给出材质养护建议。'+(o?'已找到最近一笔体验订单 <strong>'+esc(o.id)+'</strong>。':'当前没有体验订单，可以先体验商品购买流程。');actions=o?[['after','为最近订单发起服务',o.id],['faq','查看售后说明']]:[['faq','查看售后说明']];}
- else if(/下单|结算|付款|购买|买它|购物车|购物袋/.test(q)){let n=cartCount();reply=n?'购物袋里有 <strong>'+n+' 件商品</strong>，我已准备好模拟结算流程。你可以先核对商品和金额，再创建体验订单；不会发生真实付款。':'购物袋还空着。告诉我房间面积、预算或风格，我先帮你挑选。';actions=n?[['cart','查看购物袋'],['checkout','模拟下单']]:[['plan','生成搭配方案'],['catalog','逛商品']];}
- else if(/搭配|一整个|全屋|方案|布置|装修/.test(q)){reply='交给我。空间搭配会综合 <strong>房间、面积、预算、风格和生活习惯</strong>，从演示商品中组一套可直接加入购物袋的方案。';actions=[['plan','打开 AI 空间搭配'],['catalog','先逛商品']];}
- else if(/对比|比较|哪个好/.test(q)){let picks=catalog.filter(p=>q.includes(p.name)).slice(0,3);if(picks.length<2){picks=catalog.filter(p=>p.category===(q.includes('床')?'床':q.includes('餐桌')?'餐桌':'沙发')).slice(0,2)}reply='我先按 <strong>价格、尺寸、材质与适用场景</strong> 帮你梳理差异：\n'+picks.map(p=>'• '+esc(p.name)+'：'+money(p.price)+'，'+esc(p.size)+'，'+esc(p.material)).join('\n');actions=picks.map(p=>['product','查看 '+p.name,p.id]);}
- else if(/你好|在吗|能做什么|功能/.test(q)){reply='你好，我是栖居 AI 管家 ✦\n我能帮你挑家具、做全屋搭配、模拟下单、查物流、发起售后。说一句你的需求，我们就开始。';actions=[['plan','空间搭配'],['shipping','查物流'],['after', '售后服务',state.orders[0]?.id]];}
- else {const category=['沙发','单椅','餐桌','餐椅','床','收纳','灯具','茶几'].find(x=>q.includes(x));let ps=catalog.filter(p=>!category||p.category===category).sort((a,b)=>score(b,q,budget)-score(a,q,budget)).slice(0,3);reply='我把你的需求拆成了 <strong>场景、预算、风格与生活习惯</strong>，先推荐这几件：\n'+ps.map((p,i)=>(i+1)+'．'+esc(p.name)+' · '+money(p.price)+'\n　'+esc(p.tagline)+'；'+esc(p.features.slice(0,2).join('、'))).join('\n')+'\n如果告诉我更具体的面积和预算，我还可以收窄选择。';actions=ps.map(p=>['product','查看 '+p.name,p.id]);actions.push(['plan','做整套搭配']);}
- setTimeout(()=>{addBubble('assistant',reply,actions);$('#chatInput').value='';},220);
+const AI_API_BASE=location.hostname==='joker4002.github.io'?'https://qiju.treenewmedicare.top':location.origin;
+const chatHistory=[];
+let chatPending=false;
+let chatEpoch=0;
+function chatActions(q,reply=''){
+ if(/你是什么模型|模型名称|谁开发|谁训练|what model/i.test(q))return [];
+ if(/物流|快递|配送进度|发到哪|到哪了|运单/.test(q))return state.orders[0]?[['track','查看物流详情',state.orders[0].id]]:[];
+ if(/售后|退货|换货|安装|维修|破损/.test(q))return state.orders[0]?[['after','发起体验售后',state.orders[0].id]]:[];
+ if(/下单|结算|付款|购买|购物车|购物袋/.test(q))return cartCount()?[['cart','查看购物袋'],['checkout','模拟下单']]:[['catalog','先选商品']];
+ if(/搭配|全屋|方案|布置/.test(q))return [['plan','打开空间搭配']];
+ return catalog.filter(p=>reply.includes(p.name)).slice(0,3).map(p=>['product','查看 '+p.name,p.id]);
+}
+async function chat(text){
+ const q=String(text||'').trim();if(!q||chatPending)return;
+ const epoch=chatEpoch;
+ chatPending=true;go('ai');$('#chatInput').value='';addBubble('user',esc(q));
+ const pending=addBubble('assistant','正在理解你的问题…');
+ try{
+  const response=await fetch(AI_API_BASE+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q,history:chatHistory.slice(-10),cart:state.cart,orders:state.orders.slice(0,3).map(o=>({id:o.id,status:o.status,stage:o.stage,items:o.items}))})});
+  const data=await response.json();
+  if(epoch!==chatEpoch)return;
+  if(!response.ok||!data.reply)throw new Error(data.code||'SERVICE_ERROR');
+  pending.remove();addBubble('assistant',esc(data.reply).replace(/\n/g,'<br>'),chatActions(q,data.reply));
+  chatHistory.push({role:'user',content:q},{role:'assistant',content:data.reply});
+  if(chatHistory.length>12)chatHistory.splice(0,chatHistory.length-12);
+ }catch{
+  if(epoch!==chatEpoch)return;
+  pending.remove();addBubble('assistant','AI 服务暂时未连接成功，请稍后重试。商品浏览、体验订单与售后流程仍可正常使用。');
+ }finally{chatPending=false;}
 }
 function searchSheet(){showSheet('搜索家具','<div class="search-box"><input class="search-input" id="searchInput" placeholder="搜索沙发、床、餐桌、材质或场景" autofocus><div class="suggestion-chips"><button data-search-word="小户型">小户型</button><button data-search-word="原木">原木</button><button data-search-word="可拆洗">可拆洗</button><button data-search-word="阅读">阅读角</button></div></div><div class="search-list" id="searchList"></div>');$('#searchInput').focus();renderSearch('');}
 function renderSearch(q){let list=catalog.filter(p=>(p.name+p.category+p.room+p.material+p.features.join('')+p.colors).includes(q)).slice(0,15);$('#searchList').innerHTML=list.map(p=>'<button class="search-result" data-product="'+p.id+'"><img src="'+p.image+'" alt=""><span><b>'+esc(p.name)+'</b><small>'+p.category+' · '+money(p.price)+' · '+esc(p.tagline)+'</small></span></button>').join('')||'<div class="empty-state">暂时没有匹配商品，试试更简单的关键词。</div>';}
@@ -102,6 +121,8 @@ document.addEventListener('click',e=>{let el=e.target.closest('[data-view],[data
  if(el.dataset.action){let a=el.dataset.action,id=el.dataset.id;if(a==='close-sheet')closeSheet();if(a==='open-ai'){closeSheet();go('ai')}if(a==='open-planner')plannerSheet();if(a==='all-products'){state.filter='全部';renderProducts();go('home');setTimeout(()=>document.querySelector('.shop-section').scrollIntoView({behavior:'smooth'}),70)}if(a==='open-cart')cartSheet();if(a==='checkout')checkoutSheet();if(a==='place-order')placeOrder();if(a==='show-orders'){closeSheet();go('orders')}if(a==='ask-product'){closeSheet();chat('介绍一下'+byId(id).name+'，适合什么样的家？')}if(a==='ask-shipping'){closeSheet();chat('查一下订单'+id+'的物流')}if(a==='generate-plan')plan();if(a==='add-plan'){for(const pid of state.planner||[])state.cart[pid]=(state.cart[pid]||0)+1;save();updateBadges();cartSheet();toast('整套方案已加入购物袋')}if(a==='compare-plan')comparePlan();if(a==='view-favorites')favoritesSheet();if(a==='reset-demo'){if(confirm('确定重置本浏览器里的收藏、购物袋和体验订单吗？')){localStorage.removeItem(key);state.cart={};state.favs=[];state.orders=[seedOrder];save();renderProducts();renderOrders();updateBadges();toast('体验数据已重置')}}return}
 });
 $('#overlay').addEventListener('click',closeSheet);$('#searchToggle').addEventListener('click',searchSheet);$('#cartToggle').addEventListener('click',cartSheet);
+$('#clearChat').addEventListener('click',()=>{chatEpoch++;chatHistory.length=0;$('#chatLog').replaceChildren();addBubble('assistant','对话已清空。现在可以从头告诉我你的问题。');toast('原来的对话记录已清除');});
 document.addEventListener('input',e=>{if(e.target.id==='searchInput')renderSearch(e.target.value.trim());if(e.target.id==='chatInput'){e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,120)+'px'}});
 $('#chatForm').addEventListener('submit',e=>{e.preventDefault();chat($('#chatInput').value);$('#chatInput').value='';});$('#chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();chat(e.target.value);e.target.value=''}});
-renderServices();renderProducts();renderOrders();renderProfile();updateBadges();promptBar();faq();addBubble('assistant','你好，我是栖居 AI 管家。选家具、搭配空间、模拟下单、查物流或申请售后，都可以直接告诉我。',[['plan','一句话搭配空间'],['shipping','查体验订单'],['catalog','逛逛家具']]);
+localStorage.removeItem('qiju-chat-history');sessionStorage.removeItem('qiju-chat-history');$('#chatLog').replaceChildren();
+renderServices();renderProducts();renderOrders();renderProfile();updateBadges();promptBar();faq();addBubble('assistant','你好，我是栖居 AI 管家。你可以问我是什么模型，也可以聊选家具、搭配、体验订单、物流与售后。',[['plan','一句话搭配空间'],['shipping','查体验订单'],['catalog','逛逛家具']]);
