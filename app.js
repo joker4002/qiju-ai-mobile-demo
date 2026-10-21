@@ -98,7 +98,7 @@ function chatActions(q,reply=''){
 async function chat(text){
  const q=String(text||'').trim();if(!q||chatPending)return;
  const epoch=chatEpoch;
- chatPending=true;go('ai');$('#chatInput').value='';addBubble('user',esc(q));
+ chatPending=true;if(state.view!=='ai')go('ai');$('#chatInput').value='';addBubble('user',esc(q));
  const pending=addBubble('assistant','正在理解你的问题…');
  try{
   const response=await fetch(AI_API_BASE+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q,history:chatHistory.slice(-10),cart:state.cart,orders:state.orders.slice(0,3).map(o=>({id:o.id,status:o.status,stage:o.stage,items:o.items}))})});
