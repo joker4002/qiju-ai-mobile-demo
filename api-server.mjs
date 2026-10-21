@@ -10,7 +10,8 @@ if(fs.existsSync(envFile))for(const line of fs.readFileSync(envFile,'utf8').spli
   if(match&&!process.env[match[1]])process.env[match[1]]=match[2];
 }
 const key=process.env.ARK_API_KEY||'';
-const model=process.env.ARK_MODEL||'doubao-seed-2-1-pro-260915';
+const model=process.env.ARK_MODEL||'deepseek-v4-1-flash-economy-261017';
+const modelProvider=model.startsWith('deepseek-')?'DeepSeek':model.startsWith('doubao-')?'豆包':'火山方舟托管模型';
 const base=(process.env.ARK_BASE_URL||'https://ark.cn-beijing.volces.com/api/v3').replace(/\/$/,'');
 const port=Number(process.env.QIJU_API_PORT||4185);
 const host=process.env.QIJU_API_HOST||'127.0.0.1';
@@ -49,7 +50,7 @@ async function chat(req,res){
  if(!question)return json(res,400,{code:'EMPTY_MESSAGE'});
  const history=(Array.isArray(data.history)?data.history:[]).slice(-10).filter(x=>['user','assistant'].includes(x?.role)&&typeof x.content==='string').map(x=>({role:x.role,content:x.content.slice(0,700)}));
  const cart=normalizeCart(data.cart),orders=normalizeOrders(data.orders);
- const system=`你是「栖居 AI 家具服务站」的顾客端 AI 管家。当前真实模型为火山引擎方舟的 ${model}。\n回答规则：先直接回答用户实际问题，不要把“你是什么模型”“你是谁”“你会什么”等问题误判为买家具需求；被问到模型时如实说明由火山方舟豆包模型驱动。除非用户要求，不要强行推荐商品。语言自然、具体、简洁，通常 2-5 句；复杂对比可以分点。\n商品推荐必须仅使用下方 32 件演示商品的真实字段；价格、尺寸、材质不可编造。缺少尺寸、库存、活动或政策数据时直说未知，不编造承诺。订单、物流、售后、支付均为演示流程，尚未接入京东真实系统；不能声称已支付、真实发货、实际提交售后。涉及下单时可引导顾客使用页面上的购物袋和模拟下单按钮。商品列表：\n${catalogContext}`;
+ const system=`你是「栖居 AI 家具服务站」的顾客端 AI 管家。当前实际调用的模型 ID 为 ${model}，模型提供方为 ${modelProvider}，通过火山方舟 API 提供服务。\n回答规则：先直接回答用户实际问题，不要把“你是什么模型”“你是谁”“你会什么”等问题误判为买家具需求；被问到模型时准确说出模型 ID 与提供方，不要含糊说“最新版”，也不要把 DeepSeek 说成豆包。除非用户要求，不要强行推荐商品。语言自然、具体、简洁，通常 2-5 句；复杂对比可以分点。\n商品推荐必须仅使用下方 32 件演示商品的真实字段；价格、尺寸、材质不可编造。缺少尺寸、库存、活动或政策数据时直说未知，不编造承诺。订单、物流、售后、支付均为演示流程，尚未接入京东真实系统；不能声称已支付、真实发货、实际提交售后。涉及下单时可引导顾客使用页面上的购物袋和模拟下单按钮。商品列表：\n${catalogContext}`;
  const context=`当前浏览器体验数据（由页面提交，仅供本次回答参考）：购物袋 ${JSON.stringify(cart)}；最近订单 ${JSON.stringify(orders)}。`;
  const payload={model,messages:[{role:'system',content:system},{role:'system',content:context},...history,{role:'user',content:question}],thinking:{type:'disabled'},max_tokens:550,temperature:0.45};
  if(!key)return json(res,503,{code:'ARK_KEY_MISSING'});
