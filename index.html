@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f8f6f0">
+  <meta name="description" content="栖居 AI 家具服务站：从挑选、搭配、下单到物流和售后，一站体验家具网店智能服务。">
+  <title>栖居 AI 家具服务站｜让家更懂你</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <div class="demo-ribbon"><span class="sparkle">✦</span> 顾客端体验版 <span class="demo-sep">·</span> 商品、订单与物流均为演示数据</div>
+    <header class="topbar">
+      <div class="brand"><span class="brand-icon">栖</span><span>栖居 <b>AI</b><small>FURNITURE CONCIERGE</small></span></div>
+      <div class="top-actions"><button id="searchToggle" class="icon-button" aria-label="搜索商品">⌕</button><button id="cartToggle" class="icon-button cart-icon" aria-label="购物车">♧<i id="cartBadge">0</i></button></div>
+    </header>
+
+    <main>
+      <section id="homeView" class="view active">
+        <div class="home-hero">
+          <img src="./images/sofa-real.jpg" alt="温暖明亮的客厅家具场景">
+          <div class="hero-shade"></div>
+          <div class="hero-content"><span class="hero-overline">YOUR HOME, THOUGHTFULLY MADE</span><h1>你说想要的家，<br><em>我来帮你实现。</em></h1><p>选家具、搭配、下单、查物流、办售后<br>一位 AI 管家，陪你走完整程。</p><button class="hero-cta" data-action="open-ai">和 AI 聊聊 <span>↗</span></button></div>
+          <div class="hero-index"><b>01</b> / 04</div>
+        </div>
+
+        <section class="service-intro"><div class="section-header"><div><span class="eyebrow">ONE ASSISTANT, EVERY MOMENT</span><h2>想到什么，<em>直接说。</em></h2></div><span class="little-star">✳</span></div><div class="service-grid" id="serviceGrid"></div></section>
+
+        <section class="style-lab"><div class="lab-top"><span class="eyebrow">AI SPACE STUDIO</span><span class="lab-pill">灵感实验室</span></div><div class="lab-body"><div><h2>一句话，搭出<br>一整个家。</h2><p>输入空间、预算、风格和生活习惯，马上看 AI 为你组合的家具清单。</p><button class="outline-light" data-action="open-planner">试试空间搭配 <span>↗</span></button></div><div class="lab-art"><span class="lab-circle"></span><img src="./images/chair-real.jpg" alt="休闲单椅"></div></div></section>
+
+        <section class="shop-section"><div class="section-header"><div><span class="eyebrow">HANDPICKED FOR REAL LIFE</span><h2>逛逛<em>好家具</em></h2></div><button class="text-link" data-action="all-products">全部商品 ↗</button></div><div class="category-strip" id="categoryStrip"></div><div class="product-grid" id="productGrid"></div></section>
+        <section class="trust-strip"><div><b>32</b><span>件精选演示商品</span></div><div><b>8</b><span>大家具品类</span></div><div><b>6</b><span>种 AI 服务场景</span></div></section>
+      </section>
+
+      <section id="aiView" class="view ai-view"><div class="page-heading"><span class="eyebrow">QIJU CONCIERGE</span><h1>你的专属<br><em>家居 AI 管家</em></h1><p>告诉我你想要什么，我来找商品、配预算，或帮你处理订单。</p></div><div class="ai-status"><span class="status-orb"></span><div><b>栖居 AI</b><small>全天候在线 · 六项服务一站完成</small></div><span class="online-pill">在线</span></div><div class="chat-log" id="chatLog" aria-live="polite"></div><div class="prompt-strip" id="promptStrip"></div><form id="chatForm" class="chat-form"><textarea id="chatInput" rows="1" placeholder="说说你想要的家具，或问问订单…" maxlength="300"></textarea><button type="submit" aria-label="发送消息">↑</button></form><div class="ai-disclaimer">体验版基于商品与订单演示数据；真实支付和京东订单尚未接入。</div></section>
+
+      <section id="ordersView" class="view content-view"><div class="page-heading compact"><span class="eyebrow">AFTER YOU BUY</span><h1>我的<em>订单</em></h1><p>从下单到安装，进度一目了然。</p></div><div class="orders-list" id="ordersList"></div></section>
+
+      <section id="serviceView" class="view content-view"><div class="page-heading compact"><span class="eyebrow">WE'RE HERE FOR YOU</span><h1>服务<em>中心</em></h1><p>订单、物流、售后问题，一句就能开始。</p></div><div class="service-page-grid" id="servicePageGrid"></div><div class="faq-card"><div class="eyebrow">FREQUENTLY ASKED</div><h2>常见问题</h2><div id="faqList"></div></div></section>
+
+      <section id="profileView" class="view content-view"><div class="profile-hero"><div class="profile-avatar">栖</div><div><span class="eyebrow">YOUR HOME FILE</span><h1>你好，家的主理人</h1><p>演示账户 · 你的偏好只保存在当前浏览器</p></div></div><div class="profile-stats"><div><b id="profileFavs">0</b><span>心动收藏</span></div><div><b id="profileOrders">0</b><span>体验订单</span></div><div><b id="profileCart">0</b><span>购物袋商品</span></div></div><button class="wide-action" data-action="view-favorites">查看我的收藏 <span>↗</span></button><button class="wide-action" data-action="open-cart">查看购物袋 <span>↗</span></button><button class="wide-action" data-action="reset-demo">重置体验数据 <span>↗</span></button><div class="profile-note">这是独立测试站，尚未连接京东商品、账户、支付、物流和售后系统。请勿填写真实个人信息。</div></section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="主要导航"><button class="nav-item active" data-view="home"><span>⌂</span><b>首页</b></button><button class="nav-item" data-view="ai"><span>✦</span><b>AI管家</b></button><button class="nav-item" data-view="orders"><span>▤</span><b>订单</b></button><button class="nav-item" data-view="service"><span>◎</span><b>服务</b></button><button class="nav-item" data-view="profile"><span>◡</span><b>我的</b></button></nav>
+  </div>
+
+  <div id="overlay" class="overlay" hidden></div><div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-label="详情" hidden></div><div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
