@@ -81,6 +81,7 @@ function score(p,q,budget=Infinity){let s=0;if(p.price<=budget)s+=5;else s-=8;fo
 function comparePlan(){let ps=(state.planner||[]).map(byId);if(!ps.length)return;showSheet('搭配方案对比','<div class="sheet-body"><p class="checkout-note">这份对比基于当前演示商品参数。</p><table class="compare-table"><thead><tr><th>商品</th><th>价格</th><th>尺寸</th><th>材质</th></tr></thead><tbody>'+ps.map(p=>'<tr><td>'+esc(p.name)+'</td><td>'+money(p.price)+'</td><td>'+esc(p.size)+'</td><td>'+esc(p.material)+'</td></tr>').join('')+'</tbody></table><div class="sheet-action-bar"><button class="primary-action" data-action="add-plan">整套加入购物袋</button></div></div>');}
 function faq(){const qs=[['配送需要多久？','当前为体验站，未连接真实仓储物流。正式接入后可按订单与收货城市展示实际预计送达时间。'],['大件家具可以安装吗？','演示流程支持在售后中心发起安装咨询。真实安装服务范围、费用和时段需要接入店铺履约系统。'],['商品可以退换吗？','演示站可以模拟提交退换申请。真实退换条件以实际商品页面和平台规则为准。'],['AI 推荐依据是什么？','体验版会读取演示商品的空间、尺寸、材质、价格和标签，按你的描述进行匹配排序。'],['这里能直接付款吗？','当前只创建体验订单，不发起真实支付。正式上线时可与店铺下单链路对接。']];$('#faqList').innerHTML=qs.map(([q,a])=>'<details class="faq-item"><summary>'+q+'</summary><p>'+a+'</p></details>').join('');}
 function addBubble(who,html,actions=[]){let el=document.createElement('div');el.className='bubble '+(who==='user'?'user':'assistant');el.innerHTML=(who==='assistant'?'<span class="bubble-avatar">栖</span>':'')+'<div class="bubble-body">'+html+(actions.length?'<div class="bubble-actions">'+actions.map(a=>'<button data-chat-action="'+a[0]+'"'+(a[2]?' data-id="'+esc(a[2])+'"':'')+'>'+esc(a[1])+'</button>').join('')+'</div>':'')+'</div>';$('#chatLog').append(el);el.scrollIntoView({block:'nearest',behavior:'smooth'});return el;}
+function formatReply(reply){return esc(reply).replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');}
 function promptBar(){const prompts=['25㎡客厅，有猫，预算6000','帮我搭配一整个卧室','帮我下单','我的物流到哪了','我想申请售后'];$('#promptStrip').innerHTML=prompts.map(p=>'<button data-prompt="'+esc(p)+'">'+esc(p)+'</button>').join('');}
 const AI_API_BASE=location.hostname==='joker4002.github.io'?'https://qiju.treenewmedicare.top':location.origin;
 const chatHistory=[];
@@ -104,7 +105,7 @@ async function chat(text){
   const data=await response.json();
   if(epoch!==chatEpoch)return;
   if(!response.ok||!data.reply)throw new Error(data.code||'SERVICE_ERROR');
-  pending.remove();addBubble('assistant',esc(data.reply).replace(/\n/g,'<br>'),chatActions(q,data.reply));
+  pending.remove();addBubble('assistant',formatReply(data.reply),chatActions(q,data.reply));
   chatHistory.push({role:'user',content:q},{role:'assistant',content:data.reply});
   if(chatHistory.length>12)chatHistory.splice(0,chatHistory.length-12);
  }catch{
